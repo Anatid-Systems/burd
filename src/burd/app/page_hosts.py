@@ -2,6 +2,7 @@
 
 import json
 
+import pandas as pd
 import streamlit as st
 
 import burd
@@ -45,7 +46,15 @@ if "host_duplicates" in st.session_state:
             f"**{len(duplicates)}** duplicate(s) found across "
             f"**{len(kept)}** groups with duplicates."
         )
-        st.dataframe(duplicates, use_container_width=True)
+        df = pd.DataFrame(duplicates)
+        dedup_cols = ["hostname", "mac_address"]
+        st.dataframe(
+            df.style.applymap(
+                lambda _: "background-color: #fff3cd",
+                subset=[c for c in dedup_cols if c in df.columns],
+            ),
+            use_container_width=True,
+        )
         st.download_button(
             "Download duplicates JSON",
             data=json.dumps(duplicates, indent=2),
