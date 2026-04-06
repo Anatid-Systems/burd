@@ -1,6 +1,6 @@
 # Burd
 
-Python library + Jupyter notebook for programmatic interaction with CrowdStrike Falcon tenants. Features include migrating custom IOCs and Custom IOA rule groups between Falcon CIDs, and finding/removing duplicate host records within a CID. Built on [FalconPy](https://github.com/CrowdStrike/falconpy).
+Python library + Streamlit app for programmatic interaction with CrowdStrike Falcon tenants. Features include migrating custom IOCs and Custom IOA rule groups between Falcon CIDs, and finding/removing duplicate host records within a CID. Built on [FalconPy](https://github.com/CrowdStrike/falconpy).
 
 ## Project layout
 
@@ -13,7 +13,12 @@ src/burd/
   import_.py        # import_iocs(), import_custom_ioas()
   _pagination.py    # Generic FalconPy offset/total paginator
   _fields.py        # Read-only field sets + strip_fields() helper
-notebook.ipynb      # Interactive JupyterLab workflow
+  app/
+    main.py         # Streamlit entry point (st.navigation + sidebar CID management)
+    _stdout.py      # stdout/stderr capture helper for library calls
+    page_ioc.py     # IOC Migration page
+    page_ioa.py     # Custom IOA Migration page
+    page_hosts.py   # Host Deduplication page
 cids.toml           # CID credentials (gitignored, see cids.toml.example)
 ```
 
@@ -25,9 +30,9 @@ cids.toml           # CID credentials (gitignored, see cids.toml.example)
 - No test suite currently
 
 ```bash
-uv pip install -e .          # install
-uv run jupyter lab           # run notebook
-uv run ruff check src/       # lint
+uv pip install -e .                            # install
+uv run streamlit run src/burd/app/main.py      # run app
+uv run ruff check src/                         # lint
 ```
 
 ## Conventions
@@ -37,7 +42,9 @@ uv run ruff check src/       # lint
 - FalconPy service classes (IOC, CustomIOA, Hosts) are instantiated per-function call, not shared
 - All imported IOA groups and rules are created **disabled** by default
 - Dedup keys: IOCs by `(type, value)`, IOA rule groups by `name`, hosts by `(hostname, mac_address)`
-- Print-based progress output (`[*]`, `[+]`, `[-]`, `[~]` prefixes)
+- Library functions use print-based progress output (`[*]`, `[+]`, `[-]`, `[~]` prefixes); the Streamlit app captures this via `_stdout.capture_output()` (contextlib.redirect_stdout/stderr) and renders it in `st.code()` blocks
+- CID credentials are entered manually in the Streamlit sidebar and stored in `st.session_state`; `load_cids()` / `select_cid()` in `auth.py` are retained for library-only usage
+- Each Streamlit page is standalone -- no shared state between pages other than the CID list
 
 ## Sensitive files
 

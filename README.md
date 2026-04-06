@@ -1,63 +1,49 @@
 # Burd
 
-A Python library and notebook for migrating custom IOCs and Custom IOA rule groups between CrowdStrike Falcon CIDs. Built on top of [FalconPy](https://github.com/CrowdStrike/falconpy). Initially developed for personal usage, please don't expect high-quality code.
+A Python library and Streamlit app for managing CrowdStrike Falcon tenants. Built on [FalconPy](https://github.com/CrowdStrike/falconpy).
 
-## Purpose
+## Features
 
-- Export all custom IOCs and IOA rule groups from a source CID
-- Import them into one or more target CIDs
-    - Automatically dedupes IOCs by type+value and IOA groups by name
-- Creates all imported IOA groups and rules disabled for manual review
-- New: dry-run mode
-- Runs in a JupyterLab notebook because why not.
+- **IOC Migration** -- Export custom IOCs from a source CID and import them into a target CID, with automatic deduplication by type+value
+- **Custom IOA Migration** -- Export and import Custom IOA rule groups (with embedded rules), deduplicated by group name; all imported groups and rules are created **disabled** for manual review
+- **Host Deduplication** -- Find and hide duplicate host/sensor records within a CID, grouped by hostname+MAC address, keeping the most recently seen
+- Dry-run mode on all write operations
+- Each module is a standalone page in the Streamlit app
 
 ## Requirements
 
 - Python 3.12+
-- A CrowdStrike Falcon API client per CID with appropriate scopes
-    - At a minimum, your clients need:
-        - Custom IOC: Read/Write, 
-        - Custom IOA Rules: Read/Write
+- `uv` for dependency management
+- A CrowdStrike Falcon API client per CID with appropriate scopes:
+    - Custom IOC: Read/Write
+    - Custom IOA Rules: Read/Write
+    - Hosts: Read/Write (for host deduplication)
 
 ## Setup
-
-You will need `uv` to use Burd. Don't hate.
 
 ```bash
 uv pip install -e .
 ```
 
-Copy the example config and fill in your CID credentials:
-
-```bash
-cp cids.toml.example cids.toml
-```
-
-Each CID gets a named section in `cids.toml`:
-
-```toml
-[cids.prod-us2]
-client_id = "..."
-client_secret = "..."
-base_url = "https://api.us-2.crowdstrike.com"
-
-[cids.staging]
-client_id = "..."
-client_secret = "..."
-base_url = "auto"
-```
-
 ## Usage
 
-Start JupyterLab in the source directory and run `notebook.ipynb`.
+Launch the Streamlit app:
 
 ```bash
-uv run jupyter lab notebook.ipynb
+uv run streamlit run src/burd/app/main.py
 ```
 
-The notebook will prompt you to select a source and target CID, then walk you through the export and import steps.
+Add your CID credentials in the sidebar (name, client ID, client secret, base URL), then navigate between the three pages:
 
-You can also use the `burd` package directly:
+1. **IOC Migration** -- Select source/target CIDs, export IOCs, preview, then import (with dry-run toggle)
+2. **Custom IOA Migration** -- Same workflow for IOA rule groups
+3. **Host Deduplication** -- Select a CID, scan for duplicates, review the table, then hide stale records
+
+You can also export/upload JSON files between sessions using the download and file upload controls on each page.
+
+### Library usage
+
+The `burd` package can also be used directly:
 
 ```python
 import burd
@@ -71,4 +57,7 @@ ioas = burd.export_custom_ioas(source)
 target = cids["staging"]
 burd.import_iocs(target, iocs, dry_run=True)
 burd.import_custom_ioas(target, ioas, dry_run=True)
+
+duplicates, kept = burd.find_duplicate_hosts(source)
+burd.hide_duplicate_hosts(source, duplicates, dry_run=True)
 ```

@@ -6,7 +6,7 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "crowdstrike-falconpy>=1.6.1",
-    "jupyterlab>=4.5.6",
+    "streamlit>=1.36",
 ]
 
 [build-system]
