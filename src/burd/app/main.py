@@ -47,8 +47,8 @@ with st.sidebar:
 # ── Navigation ───────────────────────────────────────────────────────────
 
 pages = st.navigation([
-    st.Page("page_ioc.py", title="IOC Migration", icon=":mag:"),
-    st.Page("page_ioa.py", title="Custom IOA Migration", icon=":clipboard:"),
-    st.Page("page_hosts.py", title="Host Deduplication", icon=":desktop_computer:"),
+    st.Page("page_ioc.py", title="IOC Migration", icon="\U0001F50D"),
+    st.Page("page_ioa.py", title="Custom IOA Migration", icon="\U0001F4CB"),
+    st.Page("page_hosts.py", title="Host Deduplication", icon="\U0001F5A5"),
 ])
 pages.run()
