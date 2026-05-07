@@ -14,8 +14,10 @@ if TYPE_CHECKING:
 # Fields retrieved for each host record.
 _HOST_FIELDS = [
     "device_id",
+    "cid",
     "hostname",
     "mac_address",
+    "company_name",
     "platform_name",
     "os_version",
     "first_seen",
@@ -102,6 +104,10 @@ def find_duplicate_hosts(cid: Cid):
             continue
         # Sort by last_seen descending — keep the newest
         members.sort(key=lambda h: h.get("last_seen") or "", reverse=True)
+        # Tag each record with the fields that caused the match
+        dedup_key = {"hostname": key[0], "mac_address": key[1]}
+        for m in members:
+            m["dedup_match"] = dedup_key
         kept.append(members[0])
         duplicates.extend(members[1:])
 
