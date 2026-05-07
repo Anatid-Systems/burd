@@ -48,9 +48,21 @@ if "host_duplicates" in st.session_state:
         )
         df = pd.DataFrame(duplicates)
         dedup_cols = ["hostname", "mac_address"]
+
+        # Optional: filter duplicates to a specific CrowdStrike CID
+        if "cid" in df.columns:
+            cid_values = sorted(df["cid"].dropna().unique())
+            filter_cid = st.selectbox(
+                "Filter by CrowdStrike CID",
+                ["All"] + cid_values,
+                key="hosts_filter_cid",
+            )
+            if filter_cid != "All":
+                df = df[df["cid"] == filter_cid]
+
         st.dataframe(
-            df.style.applymap(
-                lambda _: "background-color: #fff3cd",
+            df.style.map(
+                lambda _: "background-color: #fff3cd; color: #664d03",
                 subset=[c for c in dedup_cols if c in df.columns],
             ),
             use_container_width=True,
@@ -66,6 +78,9 @@ if "host_duplicates" in st.session_state:
 
         st.subheader("2. Hide Duplicates")
 
+        filtered_duplicates = df.to_dict(orient="records")
+        st.write(f"**{len(filtered_duplicates)}** host(s) selected for hiding.")
+
         with st.form("hide_form"):
             dry_run = st.checkbox("Dry run", value=True)
             submitted = st.form_submit_button("Hide Duplicates")
@@ -74,7 +89,7 @@ if "host_duplicates" in st.session_state:
             with st.spinner("Hiding duplicate hosts..."):
                 with capture_output() as log:
                     result = burd.hide_duplicate_hosts(
-                        cid, duplicates, dry_run=dry_run
+                        cid, filtered_duplicates, dry_run=dry_run
                     )
             st.code(log.getvalue())
 

@@ -14,6 +14,7 @@ if TYPE_CHECKING:
 # Fields retrieved for each host record.
 _HOST_FIELDS = [
     "device_id",
+    "cid",
     "hostname",
     "mac_address",
     "company_name",
